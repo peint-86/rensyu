@@ -30,13 +30,22 @@ ELEMENT_SYMBOLS={"火":'$',"水":'~',"風":'@',"土":'#',"命":'&',"無":' ',}
 #エレメントカラーの定義
 element_color={"火":int(31),"水":int(36),"風":int(32),"土":int(33),"命":int(35),"無":int(37)}
 #関数宣言
-def on_player_turn(name,i,hp_sum):
+def on_enemy_turn(name,i,mon_hp,hp_sum):
+      print(f'【{name}のターン】(HP={mon_hp})')
+      print(f'コマンド？＞B')
+      damage=50
+      print(f'{damage}のダメージを受けた')
+      hp_sum-=damage
+      print(hp_sum)
+      return hp_sum
+
+def on_player_turn(name,i,hp_sum,mon_hp):
     print(f'【{name}のターン】(HP={hp_sum})')
     print(f'コマンド？＞A')
-    mon_hp=int(monlis[i]['hp'])
     damage=50
     print(f'{damage}のダメージを与えた')
     mon_hp-=damage
+    print(mon_hp)
     return mon_hp
 
 def organaize_party(friends):
@@ -47,7 +56,6 @@ def organaize_party(friends):
         dp_ave+=int(friends[j]['dp'])
         dp_ave/len(friends)
     return hp_sum,dp_ave
-        
 
 def show_party(friends):
     for k in range(len(friends)):
@@ -61,11 +69,12 @@ def show_party(friends):
 
 
 def print_monster_appere(monlis,i,name):
-    hp_sum,dp_ave=organaize_party(friends)
+    organaize_party(friends)
     symbol=ELEMENT_SYMBOLS[monlis[i]['element']]
     monster_name=monlis[i]['name']
     color=element_color[monlis[i]['element']]
-    print(f'\033[{color}m{symbol}{monster_name}{symbol}\033[0mが現れた!')
+    hp=monlis[i]['hp']
+    print(f'\033[{color}m{symbol}{monster_name}{symbol}\033[0m(HP={hp})が現れた!')
     
 
 def print_monster_disappere(monlis,i,name,hp_sum):
@@ -82,9 +91,20 @@ def do_battle(monlis,name,friends):
     hp_sum,dp_ave=organaize_party(friends)
     c=0#モンスターの倒した数を格納
     for i in monlis.keys():
+        mon_hp=int(monlis[i]['hp'])
         print_monster_appere(monlis,i,name)
-        mon_hp=on_player_turn(name,i,hp_sum)
-        print_monster_disappere(monlis,i,name,mon_hp)
+        while hp_sum>0 or mon_hp>0:
+             if hp_sum <= 0 or mon_hp <= 0:
+                 break
+             mon_hp=on_player_turn(name,i,hp_sum,mon_hp)
+             if hp_sum <= 0 or mon_hp <= 0:
+                 break
+             hp_sum=on_enemy_turn(monlis[i]['name'],i,mon_hp,hp_sum)
+             if hp_sum <= 0 or mon_hp <= 0:
+                 break
+             
+        print_monster_disappere(monlis,i,name,hp_sum)
+
         c+=1
     return c
 
