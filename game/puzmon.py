@@ -3,7 +3,7 @@
 作成者:hulo
 '''
 #import
-
+import random
 #global変数の宣言
 
 #味方モンスターの定義
@@ -33,19 +33,17 @@ element_color={"火":int(31),"水":int(36),"風":int(32),"土":int(33),"命":int
 def on_enemy_turn(name,i,mon_hp,hp_sum):
       print(f'【{name}のターン】(HP={mon_hp})')
       print(f'コマンド？＞B')
-      damage=50
+      damage=int(random.uniform(20,80))
       print(f'{damage}のダメージを受けた')
       hp_sum-=damage
-      print(hp_sum)
       return hp_sum
 
 def on_player_turn(name,i,hp_sum,mon_hp):
     print(f'【{name}のターン】(HP={hp_sum})')
     print(f'コマンド？＞A')
-    damage=50
+    damage=int(random.uniform(70,150))
     print(f'{damage}のダメージを与えた')
     mon_hp-=damage
-    print(mon_hp)
     return mon_hp
 
 def organaize_party(friends):
@@ -77,15 +75,20 @@ def print_monster_appere(monlis,i,name):
     print(f'\033[{color}m{symbol}{monster_name}{symbol}\033[0m(HP={hp})が現れた!')
     
 
-def print_monster_disappere(monlis,i,name,hp_sum):
+def print_monster_disappere(monlis,i,name,hp_sum,c):
     symbol=ELEMENT_SYMBOLS[monlis[i]['element']]
     monster_name=monlis[i]['name']
     color=element_color[monlis[i]['element']]
     if hp_sum <= 0:
-        print(f'{name}はダンジョンから逃げ出した')  
+        print(f'{name}はダンジョンから逃げ出した') 
+        c = None
+        return c
     else:
         print(f'\033[{color}m{symbol}{monster_name}{symbol}\033[0mを倒した!')
         print(f'{name}はさらに奥へと進んだ')
+        c=int(c)
+        c+=1
+        return c
 
 def do_battle(monlis,name,friends):
     hp_sum,dp_ave=organaize_party(friends)
@@ -93,7 +96,7 @@ def do_battle(monlis,name,friends):
     for i in monlis.keys():
         mon_hp=int(monlis[i]['hp'])
         print_monster_appere(monlis,i,name)
-        while hp_sum>0 or mon_hp>0:
+        while True:
              if hp_sum <= 0 or mon_hp <= 0:
                  break
              mon_hp=on_player_turn(name,i,hp_sum,mon_hp)
@@ -103,9 +106,10 @@ def do_battle(monlis,name,friends):
              if hp_sum <= 0 or mon_hp <= 0:
                  break
              
-        print_monster_disappere(monlis,i,name,hp_sum)
+        c=print_monster_disappere(monlis,i,name,hp_sum,c)
+        if c == None:
+            break
 
-        c+=1
     return c
 
 def go_dungeon(name,friends):
@@ -118,7 +122,8 @@ def go_dungeon(name,friends):
         show_party(friends)
         print("-----------------------------------")
         toubatu=do_battle(monlis,name,friends)
-        print(f'{name}はダンジョンを制覇した')
+        if toubatu==5:
+         print(f'{name}はダンジョンを制覇した')
         return toubatu
 
 
@@ -126,9 +131,9 @@ def main():
     name=input("プレイヤー名を入力してください＞＞")
     print('***puzle&monsters***')
     toubatu=go_dungeon(name,friends)
-    print('***GAME CLEARED!!***')
     if toubatu==5:
         print(f'倒したモンスターの数＝{toubatu}')
+        print('***GAME CLEARED!!***')
     else:
         print('***GAME OVER!!***')
 
